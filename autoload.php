@@ -57,6 +57,9 @@ defined('JQUERY_PATH')
 defined('REPO_URL')
 	or define('REPO_URL', 'https://github.com/valerio-bozzolan/Wikimedia-portal-stats');
 
+defined('CONTENT_HEADER')
+	or define('CONTENT_HEADER', 'Content-Type: text/html; charset=utf-8');
+
 // Some functions
 require ABSPATH . __ . 'includes' . __ . 'functions.php';
 

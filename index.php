@@ -17,6 +17,8 @@
 
 require 'autoload.php';
 
+CONTENT_HEADER and header(CONTENT_HEADER);
+
 ?>
 <!DOCTYPE html>
 <html>

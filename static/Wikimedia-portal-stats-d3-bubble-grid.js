@@ -253,8 +253,6 @@ function draw( args ) {
 		COLS = 1;
 	}
 
-	console.log( COLS );
-
 	elements.transition().duration( EXTRALONG )
 		.attr('transform', function (d, i) {
 
