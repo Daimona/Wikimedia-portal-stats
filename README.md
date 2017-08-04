@@ -4,6 +4,10 @@
 * How many pages have the Free software portal?
 * Etc.
 
+## Try it
+
+Go to [Wikimedia Foundation Labs / portal-stats](https://tools.wmflabs.org/portal-stats/).
+
 ## Installation
 
 Get the source code:
