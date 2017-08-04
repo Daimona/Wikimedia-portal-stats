@@ -48,6 +48,12 @@ defined('DATAREADY_ROOT')
 defined('DATAREADY_PATH')
 	or define('DATAREADY_PATH', DATA_PATH . __ . DATAREADY);
 
+defined('D3_PATH')
+	or define('D3_PATH', ROOT . '/static/d3/d3.min.js');
+
+defined('JQUERY_PATH')
+	or define('JQUERY_PATH', ROOT . '/static/jquery/jquery.min.js');
+
 // Some functions
 require ABSPATH . __ . 'includes' . __ . 'functions.php';
 

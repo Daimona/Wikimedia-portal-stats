@@ -2,6 +2,42 @@
 
 * How many visits have the Biology portal?
 * How many pages have the Free software portal?
+* Etc.
+
+## Installation
+
+Get the source code:
+
+    git clone --recursive git@github.com:valerio-bozzolan/Wikimedia-portal-stats.git
+
+Copy the configuration template:
+
+    cp config-example.php config.php
+
+Do things in the configuration:
+
+    editor config.php
+
+Have fun!
+
+## Usage
+
+Fetch all the portals:
+
+    ./fetch-portals.php
+
+
+Fetch statistics (interrupt with ^C when you think that you are enough!):
+
+    ./fetch-stats.php
+
+
+Publish the data:
+
+    # Publish data
+    ./publish.php
+
+Have fun with the website!
 
 ## License
 Copyright (C) 2017  Valerio Bozzolan and contributors
