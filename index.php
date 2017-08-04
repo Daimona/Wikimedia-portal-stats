@@ -23,11 +23,8 @@ require 'autoload.php';
 <head>
 	<title><?php echo _("Wikimedia portal stats") ?></title>
 	<style>
-	text {
-		font-size:0.9em;
-	}
 	text.data-value {
-		font-size:0.5em;
+		font-size:0.7em;
 	}
 	</style>
 </head>
@@ -111,10 +108,6 @@ require 'autoload.php';
 		this.previousBy    = args.by;
 		this.previousOrder = args.order;
 
-		console.log("ASD");
-		console.log(this.previousOrder);
-		console.log(args.order);
-
 		this.previous = args.by;
 
 		var order = args.order === 'desc'
@@ -186,12 +179,12 @@ require 'autoload.php';
 			return order(aV, bV);
 		}
 
-		latestPortals = latestPortals.sort( sortingCallback );
+		latestPortals.sort( sortingCallback );
 
 		var color = d3.scaleOrdinal(d3.schemeCategory20c);
 
 		var minSize = 15;
-		var maxSize = 50;
+		var maxSize = 100;
 
 		var realMaxSize = maxSize + minSize;
 
@@ -207,58 +200,92 @@ require 'autoload.php';
 				+ minSize;
 		}
 
-		svg.selectAll('g').remove();
+		var SHORT     = 150;
+		var NORMAL    = 500;
+		var LONG      = 900;
+		var EXTRALONG = 1000;
 
-		var elements = svg.selectAll('g')
-			.data( latestPortals ).enter()
-				.append('g')
-					.attr('transform', function (d, i) {
-						var x = width / 2;
-						var y = i * realMaxSize * 2 + realMaxSize;
-						return 'translate(' + x.toString() + ',' + y.toString() + ')';
-					} );
+		var elements = svg.selectAll('g');
 
-		elements.append('circle')
-			.attr('title', nameCallback )
-			.attr('r', radiusCallback )
-			.style('fill', function ( d, i ) {
-				return color( i );
+		args.clean && elements.remove();
+
+		if( ! svg.selectAll('g').size() ) {
+
+			// Only first time
+			elements = elements.data( latestPortals )
+				.enter()
+					.append('g');
+
+			elements.append('circle')
+				.attr('title', nameCallback )
+				.style('fill', function ( d, i ) {
+					return color( i );
+				} );
+
+			elements.append('text')
+				.attr('class', 'data-name');
+
+			elements.append('text')
+				.attr('class', 'data-value')
+				.attr('transform', 'translate(100, 20)');
+
+			elements.on('mouseover', function() {
+				d3.select(this).select('circle')
+					.transition().duration( NORMAL )
+						.style('opacity', 0.5)
 			} );
 
-		elements.append('text')
-			.attr('class', 'data-name')
+			elements.on('mouseout', function() {
+				d3.select(this).select('circle')
+					.transition().duration( SHORT )
+						.style('opacity', 1);
+			} );
+
+			elements.on('click', function () {
+				var el = d3.select(this);
+				var data = el.data()[0];
+				var i = latestPortals.indexOf( data );
+				latestPortals.splice(i, 1);
+
+				var transition = el.transition().duration( NORMAL )
+					.style('opacity', 0);
+
+				transition.selectAll('circle')
+					.attr('r', 0);
+
+				transition.selectAll('text')
+					.style('font-size', '1px');
+
+				setTimeout( function () {
+					draw( { order: args.order } );
+				}, NORMAL );
+			} );
+
+
+		}
+
+		elements.transition().duration( EXTRALONG )
+			.attr('transform', function (d, i) {
+				var iOrdered = latestPortals.indexOf( d );
+				var x = width / 2;
+				var y = iOrdered * realMaxSize * 2 + realMaxSize;
+				return 'translate(' + x.toString() + ',' + y.toString() + ')';
+			} )
+
+		elements.selectAll('circle')
+			.transition().duration( NORMAL )
+			.attr('r', radiusCallback )
+
+		elements.selectAll('text.data-name')
 			.text( nameCallback );
 
-		elements.append('text')
-			.text( humanInterestingValue )
-			.attr('class', 'data-value')
-			.attr('transform', 'translate(100, 20)');
+		elements.selectAll('text.data-value')
+			.text( humanInterestingValue );
 
-		elements.on('mouseover', function() {
-			d3.select(this).select('circle')
-				.transition()
-				.duration(500)
-				.style('opacity', 0.5)
-		} );
+		var height = latestPortals.length * realMaxSize * 2;
 
-		elements.on('mouseout', function() {
-			d3.select(this).select('circle')
-				.transition()
-				.duration(150)
-				.style('opacity', 1);
-		} );
-
-		elements.on('click', function () {
-			var data = d3.select(this).data()[0];
-
-			var i = latestPortals.indexOf( data );
-			latestPortals.splice(i, 1);
-
-			draw( { order: args.order } );
-		} );
-
-		var height = elements.size() * realMaxSize * 2;
-		svg.attr('height', height);
+		svg.transition().duration( LONG )
+			.attr('height', height);
 	}
 
 	</script>
