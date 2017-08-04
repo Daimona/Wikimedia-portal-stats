@@ -96,18 +96,23 @@ require 'autoload.php';
 		return order === 'desc' ? 'asc' : 'desc';
 	}
 
+	d3.select(window).on('resize', function () {
+		latestPortals && draw( { toggleOrder: false } );
+	} );
+
 	function draw( args ) {
 		var args = args || {};
 
 		var DEFAULT_BY    = 'ratio'; // 'ratio', 'hits', 'pages'
 		var DEFAULT_ORDER = 'asc';  // 'desc', 'asc'
 
-		this.previousBy    = this.previousBy    || DEFAULT_BY;
-		this.previousOrder = this.previousOrder || DEFAULT_ORDER;
-		args.by            = args.by            || this.previousBy || DEFAULT_BY;
+		this.previousBy    = this.previousBy                || DEFAULT_BY;
+		this.previousOrder = this.previousOrder             || DEFAULT_ORDER;
+		args.by            = args.by                        || this.previousBy  || DEFAULT_BY;
+		args.toggleOrder   = args.toggleOrder === undefined && true             || args.toggleOrder;
 
 		if( args.order === undefined ) {
-			args.order = args.by === this.previousBy
+			args.order = ( args.toggleOrder && args.by === this.previousBy )
 				? toggleOrder( this.previousOrder )
 				: this.previousOrder;
 		}
@@ -264,7 +269,7 @@ require 'autoload.php';
 					.style('font-size', '1px');
 
 				setTimeout( function () {
-					draw( { order: args.order } );
+					draw( { toggleOrder: false } );
 				}, NORMAL );
 			} );
 
@@ -273,6 +278,9 @@ require 'autoload.php';
 
 		var PADDING = 200;
 		var COLS    = parseInt( width / ( realMaxSize + PADDING ) );
+		if( COLS < 1 ) {
+			COLS = 1;
+		}
 
 		console.log( COLS );
 
