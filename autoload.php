@@ -54,7 +54,7 @@ defined('D3_PATH')
 defined('JQUERY_PATH')
 	or define('JQUERY_PATH', ROOT . '/static/jquery/jquery.min.js');
 
-define('REPO_URL')
+defined('REPO_URL')
 	or define('REPO_URL', 'https://github.com/valerio-bozzolan/Wikimedia-portal-stats');
 
 // Some functions
