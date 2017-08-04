@@ -29,6 +29,11 @@ require 'autoload.php';
 	</style>
 </head>
 <body>
+	<h1><?php echo _("Wikimedia portal stats") ?></h1>
+	<p><?php printf(
+		"Currently viewing %s dataset.",
+		'<span class="dataset">//</span>'
+	) ?></p>
 	<p>
 	<button class="by-ratio">By ratio</button>
 	<button class="by-hits">By hits</button>
@@ -55,6 +60,8 @@ require 'autoload.php';
 
 			var file = dataReady.files[ file ];
 			d3.json( file, function (stats) {
+				d3.selectAll('.dataset')
+					.text( dataReady.files[ file ] );
 
 				latestPortals = [];
 				for(var portal in stats.portals) {
@@ -264,11 +271,29 @@ require 'autoload.php';
 
 		}
 
+		var PADDING = 200;
+		var COLS    = parseInt( width / ( realMaxSize + PADDING ) );
+
+		console.log( COLS );
+
 		elements.transition().duration( EXTRALONG )
 			.attr('transform', function (d, i) {
+
 				var iOrdered = latestPortals.indexOf( d );
-				var x = width / 2;
-				var y = iOrdered * realMaxSize * 2 + realMaxSize;
+				var col = iOrdered % COLS;
+				var x = width / COLS * col + PADDING / 2;
+				var y = parseInt( iOrdered / COLS ) * realMaxSize * 2 + realMaxSize;
+
+				// Proud note:
+				//
+				// The above formulas have been written in 2~3 minutes
+				// only writing them in my head while wandering across my room
+				// WITHOUT testing them in any way AND THEY WORKED AT THE FIRST ATTEMPT!
+				//
+				// 	«OHHHH! IN YOUR FACE MATH TESTS, IN YOUR FACE!»
+				//
+				// -- Valerio Bozzolan 4 agosto 2017 11:41
+
 				return 'translate(' + x.toString() + ',' + y.toString() + ')';
 			} )
 
