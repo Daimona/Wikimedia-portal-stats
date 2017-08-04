@@ -307,7 +307,7 @@ require 'autoload.php';
 		elements.selectAll('text.data-value')
 			.text( humanInterestingValue );
 
-		var height = latestPortals.length * realMaxSize * 2;
+		var height = parseInt( latestPortals.length / COLS ) * realMaxSize * 2;
 
 		svg.transition().duration( LONG )
 			.attr('height', height);
