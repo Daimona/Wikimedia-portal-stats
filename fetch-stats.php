@@ -72,7 +72,7 @@ foreach($year_month_logs as $year_month_log) {
 	$year  = (int) $year;
 	$month = (int) $month;
 	$day   = (int) $day;
-	$hour  = (int) $hour;
+	$hour  = (int) substr($hour, 0, 2);
 
 	// Skip unattended log title
 	if( $year === 0 || $month === 0 || $day === 0 ) {

@@ -22,7 +22,7 @@ require 'autoload.php';
 
 $len = strlen( PORTALSTATS_PREFIX );
 
-$goods = [];
+$data = [];
 
 $ls = scandir( DATA_PATH );
 foreach($ls as $file) {
@@ -33,10 +33,51 @@ foreach($ls as $file) {
 	$prefix = substr($file, 0, $len);
 
 	if( $prefix === PORTALSTATS_PREFIX ) {
-		$goods[] = DATA_ROOT . _ . $file;
+		// portalstats-it-pageviews-20170805-010000.gz.json
+		preg_match('/([a-z]+)-[a-z]+-([0-9]{4})([0-9]{2})([0-9]{2})-([0-9]{2})[0-9]+/',
+			$file,
+			$matches
+		);
+
+		if( count( $matches ) !== 6 ) {
+			logmsg("Wrong format filename '$file'");
+			continue;
+		}
+
+		list(, $wiki, $year, $month, $day, $hour) = $matches;
+
+		$year  = (int) $year;
+		$month = (int) $month;
+		$day   = (int) $day;
+		$hour  = (int) $hour;
+
+		$data[] = [
+			'date' => [
+				'y' => $year,
+				'm' => $month,
+				'd' => $day,
+				'h' => $hour
+			],
+			'wiki' => $wiki,
+			'file' => DATA_ROOT . _ . $file
+		];
 	}
 }
 
-file_put_contents( DATAREADY_PATH, json_encode( [
-	'files' => $goods
-] ) );
+usort( $data, function ( $a, $b ) {
+	if( $a['wiki'] !== $b['wiki'] ) {
+		return $a['wiki'] < $b['wiki'] ? -1 : 1;
+	}
+	if( $a['date']['y'] !== $b['date']['y'] ) {
+		return $a['date']['y'] < $b['date']['y'] ? -1 : 1;
+	}
+	if( $a['date']['m'] !== $b['date']['m'] ) {
+		return $a['date']['m'] < $b['date']['m'] ? -1 : 1;
+	}
+	if( $a['date']['d'] !== $b['date']['d'] ) {
+		return $a['date']['d'] < $b['date']['d'] ? -1 : 1;
+	}
+	return $a['date']['h'] < $b['date']['h'] ? -1 : 1;
+} );
+
+file_put_contents( DATAREADY_PATH, json_encode( $data ) );

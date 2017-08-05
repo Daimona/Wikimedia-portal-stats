@@ -32,10 +32,10 @@ CONTENT_HEADER and header(CONTENT_HEADER);
 </head>
 <body>
 	<h1><?php echo _("Wikimedia portal stats") ?></h1>
-	<p><?php printf(
-		_("Currently viewing %s dataset."),
-		'<span class="dataset">//</span>'
-	) ?></p>
+	<p>
+		<?php echo _("Change dataset:") ?><br />
+		<select name="pick-dataset"></select>
+	</p>
 	<p>
 	<button class="by-ratio">By ratio</button>
 	<button class="by-hits">By hits</button>

@@ -16,52 +16,57 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-var svg = d3.select('svg');
-
-var latestPortals;
+var svg    = d3.select('svg');
+var select = d3.select('select[name=pick-dataset]');
 
 d3.json( dataReadyAPI, function (dataReady) {
-	var done = 0;
+	select.selectAll('option')
+		.data( dataReady )
+		.enter()
+			.append('option')
+			.html( function ( d ) {
+				return d.wiki + ": " +
+				d.date.y.toString() + "/" +
+				d.date.m.toString() + "/" +
+				d.date.d.toString() + " h" +
+				d.date.h.toString();
+			} );
 
-	for( file in dataReady.files ) {
-
-		if( done > 0 ) {
-			return;
-		}
-		done++;
-
-		var file = dataReady.files[ file ];
-		d3.json( file, function (stats) {
-			d3.selectAll('.dataset')
-				.text( file );
-
-			latestPortals = [];
-			for(var i in stats.portals) {
-				var portal = stats.portals[i];
-
-				if( portal.hits === 0 || portal.pages === 0 ) {
-					continue;
-				}
-				latestPortals.push( portal );
-			}
-
-			console.log( latestPortals );
-
-			draw();
-		} );
-	}
+	fetchAndDraw();
+	select.on('change', fetchAndDraw);
 } );
 
+function fetchAndDraw() {
+	this.fetchCache = {};
+
+	var that = this;
+
+	var selected = select.selectAll("option")
+		.filter( function () { 
+			return this.selected; 
+		} )
+		.each( function (d) {
+			if( that.fetchCache[ d.file ] ) {
+				draw( { stats: that.fetchCache[ d.file ] } );
+			} else {
+				d3.json( d.file, function (stats) {
+					that.fetchCache[ d.file ] = stats;
+					draw( { stats: stats } );
+				} );
+			}
+		} );
+}
+
 d3.selectAll('.by-ratio').on('click', function () {
-	draw( { by: 'ratio' } );
+	draw( { by: 'ratio', toggleOrder: true } );
 } );
 
 d3.selectAll('.by-hits').on('click', function () {
-	draw( { by: 'hits' } );
+	draw( { by: 'hits', toggleOrder: true } );
 } );
 
 d3.selectAll('.by-pages').on('click', function () {
-	draw( { by: 'pages' } );
+	draw( { by: 'pages', toggleOrder: true } );
 } );
 
 function toggleOrder(order) {
@@ -69,19 +74,60 @@ function toggleOrder(order) {
 }
 
 d3.select(window).on('resize', function () {
-	latestPortals && draw( { toggleOrder: false } );
+	draw();
 } );
 
 function draw( args ) {
 	var args = args || {};
 
+	if( this.initialStats === undefined ) {
+		if( args.stats ) {
+			this.initialStats = args.stats;
+		}
+	}
+
+	var stats = this.initialStats;
+
+	// No portals
+	if( ! stats ) {
+		console.log("No portals");
+		return;
+	}
+
+	var elements = svg.selectAll('g');
+
+	// Merge
+	if( args.stats && elements.size() ) {
+		if( stats.wiki === args.stats.wiki ) {
+			for(var i=0; i<stats.portals.length; i++) {
+				for(var j=0; j<args.stats.portals.length; j++) {
+					var found = true;
+					if( stats.portals[i].name === args.stats.portals[j].name ) {
+						for(var prop in args.stats.portals[j]) {
+							stats.portals[i][prop] = args.stats.portals[j][prop];
+						}
+						break;
+					}
+					if( ! found ) {
+						console.log("Missing portal");
+						console.log(stats.portals[i]);
+						args.clear = true;
+						break;
+					}
+				}
+			}
+		} else {
+			args.clear = true;
+		}
+	}
+
 	var DEFAULT_BY    = 'ratio'; // 'ratio', 'hits', 'pages'
-	var DEFAULT_ORDER = 'asc';  // 'desc', 'asc'
+	var DEFAULT_ORDER = 'desc';  // 'desc', 'asc'
 
 	this.previousBy    = this.previousBy                || DEFAULT_BY;
 	this.previousOrder = this.previousOrder             || DEFAULT_ORDER;
 	args.by            = args.by                        || this.previousBy  || DEFAULT_BY;
-	args.toggleOrder   = args.toggleOrder === undefined && true             || args.toggleOrder;
+	args.toggleOrder   = args.toggleOrder === undefined ? false             :  args.toggleOrder;
 
 	if( args.order === undefined ) {
 		args.order = ( args.toggleOrder && args.by === this.previousBy )
@@ -98,18 +144,24 @@ function draw( args ) {
 		? function (a, b) { return a < b ? 1 : -1; }
 		: function (a, b) { return a > b ? 1 : -1; };
 
-	var iCallback     = function ( d, i ) { return i; };
-	var hitsCallback  = function ( d ) { return d.hits;   };
-	var pagesCallback = function ( d ) { return d.pages;  };
-	var nameCallback  = function ( d ) { return d.name;        };
-	var ratioCallback = function ( d ) { return hitsCallback(d) / pagesCallback(d); };
+	var iCallback     = function ( d, i ) { return i;       };
+	var hitsCallback  = function ( d )    { return d.hits;  };
+	var pagesCallback = function ( d )    { return d.pages; };
+	var nameCallback  = function ( d )    { return d.name;  };
+	var ratioCallback = function ( d )    {
+		var pages = pagesCallback( d );
+		if( pages === 0 ) {
+			return 0; // Penalization
+		}
+		return hitsCallback(d) / pages;
+	};
 
-	var minHits  = d3.min( latestPortals, hitsCallback );
-	var maxHits  = d3.max( latestPortals, hitsCallback );
-	var minPages = d3.min( latestPortals, pagesCallback );
-	var maxPages = d3.max( latestPortals, pagesCallback );
-	var minRatio = d3.min( latestPortals, ratioCallback );
-	var maxRatio = d3.max( latestPortals, ratioCallback );
+	var minHits  = d3.min( stats.portals, hitsCallback );
+	var maxHits  = d3.max( stats.portals, hitsCallback );
+	var minPages = d3.min( stats.portals, pagesCallback );
+	var maxPages = d3.max( stats.portals, pagesCallback );
+	var minRatio = d3.min( stats.portals, ratioCallback );
+	var maxRatio = d3.max( stats.portals, ratioCallback );
 
 	var interestingValue;
 	var secondInterestingValue;
@@ -163,7 +215,7 @@ function draw( args ) {
 		return order(aV, bV);
 	}
 
-	latestPortals.sort( sortingCallback );
+	stats.portals.sort( sortingCallback );
 
 	var color = d3.scaleOrdinal(d3.schemeCategory20c);
 
@@ -175,30 +227,32 @@ function draw( args ) {
 	var width = d3.select('body').node().getBoundingClientRect().width;
 	svg.attr('width', width);
 
-	var radiusCallback = function ( d ) {
-		return ( interestingValue(d) - minInterestingValue )
-			*
-			( maxSize - minSize )
-			/
-			( maxInterestingValue - minInterestingValue )
-			+ minSize;
-	}
+	var radiusCallback = function ( d, i ) {
+		return ( interestingValue(d) - minInterestingValue ) *
+			( maxSize - minSize ) /
+			( maxInterestingValue - minInterestingValue ) +
+			minSize;
+	};
 
 	var SHORT     = 150;
 	var NORMAL    = 500;
 	var LONG      = 900;
 	var EXTRALONG = 1000;
 
-	var elements = svg.selectAll('g');
+	if( args.clear ) {
+		elements.remove();
 
-	args.clean && elements.remove();
+		if( args.stats ) {
+			stats = this.initialStats = args.stats;
+		}
+	}
 
 	if( ! svg.selectAll('g').size() ) {
 
 		// Only first time
-		elements = elements.data( latestPortals )
-			.enter()
-				.append('g');
+
+		elements = elements.data( stats.portals ).enter()
+			.append('g');
 
 		elements.append('circle')
 			.attr('title', nameCallback )
@@ -228,8 +282,9 @@ function draw( args ) {
 		elements.on('click', function () {
 			var el = d3.select(this);
 			var data = el.data()[0];
-			var i = latestPortals.indexOf( data );
-			latestPortals.splice(i, 1);
+			var i = stats.portals.indexOf(data);
+
+			stats.portals.splice(i, 1);
 
 			var transition = el.transition().duration( NORMAL )
 				.style('opacity', 0);
@@ -254,9 +309,9 @@ function draw( args ) {
 	}
 
 	elements.transition().duration( EXTRALONG )
-		.attr('transform', function (d, i) {
+		.attr('transform', function (d) {
 
-			var iOrdered = latestPortals.indexOf( d );
+			var iOrdered = stats.portals.indexOf( d );
 			var col = iOrdered % COLS;
 			var x = width / COLS * col + PADDING / 2;
 			var y = parseInt( iOrdered / COLS ) * realMaxSize * 2 + realMaxSize;
@@ -284,7 +339,7 @@ function draw( args ) {
 	elements.selectAll('text.data-value')
 		.text( humanInterestingValue );
 
-	var height = parseInt( latestPortals.length / COLS ) * realMaxSize * 2;
+	var height = parseInt( stats.portals.length / COLS ) * realMaxSize * 2;
 
 	svg.transition().duration( LONG )
 		.attr('height', height);
