@@ -24,10 +24,10 @@ d3.json( dataReadyAPI, function (dataReady) {
 	var done = 0;
 
 	for( file in dataReady.files ) {
+
 		if( done > 0 ) {
 			return;
 		}
-
 		done++;
 
 		var file = dataReady.files[ file ];
@@ -36,18 +36,18 @@ d3.json( dataReadyAPI, function (dataReady) {
 				.text( dataReady.files[ file ] );
 
 			latestPortals = [];
-			for(var portal in stats.portals) {
-				var portalData = stats.portals[ portal ];
-				if( portalData.hits === 0 || portalData.pages === 0 ) {
+			for(var i in stats.portals) {
+				var portal = stats.portals[i];
+
+				if( portal.hits === 0 || portal.pages === 0 ) {
 					continue;
 				}
-				latestPortals.push( {
-					name: portal,
-					data: portalData
-				} );
+				latestPortals.push( portal );
 			}
-			draw();
 
+			console.log( latestPortals );
+
+			draw();
 		} );
 	}
 } );
@@ -99,8 +99,8 @@ function draw( args ) {
 		: function (a, b) { return a > b ? 1 : -1; };
 
 	var iCallback     = function ( d, i ) { return i; };
-	var hitsCallback  = function ( d ) { return d.data.hits;   };
-	var pagesCallback = function ( d ) { return d.data.pages;  };
+	var hitsCallback  = function ( d ) { return d.hits;   };
+	var pagesCallback = function ( d ) { return d.pages;  };
 	var nameCallback  = function ( d ) { return d.name;        };
 	var ratioCallback = function ( d ) { return hitsCallback(d) / pagesCallback(d); };
 

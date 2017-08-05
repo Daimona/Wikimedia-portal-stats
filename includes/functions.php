@@ -44,15 +44,15 @@ function sanitize_filename($filename) {
 	return str_replace( [ '/', '\\', '..' ], '', $filename);
 }
 
-function data_wiki_portals($wiki) {
+function data_wiki_portals_path($wiki) {
 	return DATA_PATH . __ . sanitize_filename( "portals-$wiki.txt" );
 }
 
-function data_wiki_portal_pages($portal) {
-	return DATA_PATH . __ . sanitize_filename( "portalpages-$portal.txt" );
+function data_wiki_portal_pages_path($wiki, $portal) {
+	return DATA_PATH . __ . sanitize_filename( "portalpages-$wiki-$portal.txt" );
 }
 
-function data_wiki_portal_stats($date) {
+function data_wiki_portal_stats_path($wiki, $date) {
 	return DATA_PATH . __ . sanitize_filename( PORTALSTATS_PREFIX . "-$wiki-$date.json");
 }
 
@@ -65,4 +65,20 @@ function file_2_array($file) {
 
 function array_2_file($array, $file) {
 	file_put_contents( $file, implode("\n", $array) );
+}
+
+/**
+ * @param string Wiki alias e.g. 'it.m', 'en.zero' ecc.
+ * @return string Wiki e.g. 'it', 'en' ecc.
+ */
+function normalize_wiki($wiki) {
+	return str_replace( ['.m', '.zero'], '', $wiki );
+}
+
+/**
+ * @param string Wiki e.g. 'en'
+ * @param array Wiki aliases e.g. ['en', 'en.m', 'en.zero']
+ */
+function wiki_aliases($wiki) {
+	return [$wiki, "$wiki.m", "$wiki.zero"];
 }

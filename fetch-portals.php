@@ -27,18 +27,15 @@ require 'autoload.php';
 
 $LIMIT = 500;
 
-$wikiapis = array_reverse( $WIKILOG_2_WIKIAPI ); // [ it, it.m ] => [ it.m, it ]
-$wikiapis_2_wikilog = array_flip( $wikiapis );
-
-foreach( $wikiapis_2_wikilog as $wikiapi => $wikilog ) {
-	$portals_path = data_wiki_portals($wikilog);
+foreach( $WIKILOG_2_WIKIAPI as $wiki => $wiki_api ) {
+	$portals_path = data_wiki_portals_path($wiki);
 
 	if( ! file_exists( $portals_path ) ) {
 		logmsg("Filling $portals_path");
-		$api = APIRequest::factory($wikiapi, [
+		$api = APIRequest::factory($wiki_api, [
 			'action'      => 'query',
 			'list'        => 'allpages',
-			'apnamespace' => 100, // Portal
+			'apnamespace' => 100, // Portal namespace
 			'aplimit'     => $LIMIT
 		] );
 
@@ -61,10 +58,10 @@ foreach( $wikiapis_2_wikilog as $wikiapi => $wikilog ) {
 	$portals = file_2_array( $portals_path );
 
 	foreach($portals as $portal) {
-		$portal_pages_path = data_wiki_portal_pages($portal);
+		$portal_pages_path = data_wiki_portal_pages_path($wiki, $portal);
 
 		if( ! file_exists( $portal_pages_path ) ) {
-			$api = APIRequest::factory($wikiapi, [
+			$api = APIRequest::factory($wiki_api, [
 				'action'      => 'query',
 				'titles'      => $portal,
 				'prop'        => 'linkshere',
