@@ -33,7 +33,7 @@ d3.json( dataReadyAPI, function (dataReady) {
 		var file = dataReady.files[ file ];
 		d3.json( file, function (stats) {
 			d3.selectAll('.dataset')
-				.text( dataReady.files[ file ] );
+				.text( file );
 
 			latestPortals = [];
 			for(var i in stats.portals) {
