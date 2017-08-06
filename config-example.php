@@ -19,7 +19,7 @@
 
 // Allowed wiki log => its wiki api
 $WIKILOG_2_WIKIAPI = [
-	'it'   => 'https://it.wikipedia.org/w/api.php'
+	'it'   => 'https://it.wikipedia.org/'
 ];
 
 // Absolute pathname to this folder (without trailing slash)
