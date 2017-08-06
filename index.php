@@ -32,15 +32,19 @@ CONTENT_HEADER and header(CONTENT_HEADER);
 </head>
 <body>
 	<h1><?php echo _("Wikimedia portal stats") ?></h1>
+
 	<p>
 		<?php echo _("Change dataset:") ?><br />
 		<select name="pick-dataset"></select>
 	</p>
+
 	<p>
 	<button class="by-ratio">By ratio</button>
 	<button class="by-hits">By hits</button>
 	<button class="by-pages">By pages</button>
 	</p>
+
+	<p><?php echo _("Tip: To hide a bubble, wait on it.") ?></p>
 
 	<svg width="960" height="960" text-anchor="middle"></svg>
 
@@ -52,13 +56,18 @@ CONTENT_HEADER and header(CONTENT_HEADER);
 	) ?></p>
 
 	<p class="license-disclaimer"><?php printf(
-		_('<a href="%s" title="Wikimedia portal stats source code">This website</a> is free as in freedom software. You can study, execute, improve and share it respecting the <a href="%s" title="GNU Affero General Public License">GNU AGPL</a>.'),
+		_('<a href="%s" title="Wikimedia portal stats source code">This website</a> is free as in freedom software. You can study, execute, improve and share it respecting the <a href="%s" title="GNU Affero General Public License">GNU AGPL</a> license.'),
 		REPO_URL,
 		'https://www.gnu.org/licenses/agpl-3.0.html'
 	) ?></p>
 
 	<script src="<?php echo D3_PATH ?>"></script>
-	<script>var dataReadyAPI = '<?php echo DATAREADY_ROOT ?>';</script>
+	<script>
+	var dataReadyAPI = '<?php echo DATAREADY_ROOT ?>';
+	var L10N = {
+		hide: 'hold to hide'
+	};
+	</script>
 	<script src="<?php echo ROOT ?>/static/Wikimedia-portal-stats-d3-bubble-grid.js"></script>
 </body>
 </html>

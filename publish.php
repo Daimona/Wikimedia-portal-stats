@@ -51,6 +51,10 @@ foreach($ls as $file) {
 		$day   = (int) $day;
 		$hour  = (int) $hour;
 
+		if( ! isset( $WIKILOG_2_WIKIAPI[ $wiki ] ) ) {
+			logmsg("Wiki $wiki unknown.");
+		}
+
 		$data[] = [
 			'date' => [
 				'y' => $year,
@@ -59,6 +63,7 @@ foreach($ls as $file) {
 				'h' => $hour
 			],
 			'wiki' => $wiki,
+			'url'  => $WIKILOG_2_WIKIAPI[ $wiki ],
 			'file' => DATA_ROOT . _ . $file
 		];
 	}

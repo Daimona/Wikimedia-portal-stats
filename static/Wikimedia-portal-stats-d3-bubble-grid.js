@@ -217,8 +217,6 @@ function draw( args ) {
 
 	stats.portals.sort( sortingCallback );
 
-	var color = d3.scaleOrdinal(d3.schemeCategory20c);
-
 	var minSize = 15;
 	var maxSize = 100;
 
@@ -234,10 +232,11 @@ function draw( args ) {
 			minSize;
 	};
 
-	var SHORT     = 150;
+	var SHORT     = 200;
 	var NORMAL    = 500;
 	var LONG      = 900;
 	var EXTRALONG = 1000;
+	var TOOLONG   = 2000;
 
 	if( args.clear ) {
 		elements.remove();
@@ -247,63 +246,108 @@ function draw( args ) {
 		}
 	}
 
+	function translate(x, y) {
+		return 'translate(' + x + ', ' + y + ')';
+	}
+
 	if( ! svg.selectAll('g').size() ) {
+
+		var color = d3.scaleOrdinal(d3.schemeCategory20c);
+		var colorCallback = function ( d, i ) {
+			return color( i );
+		}
 
 		// Only first time
 
 		elements = elements.data( stats.portals ).enter()
 			.append('g');
 
+		// Bubbles
 		elements.append('circle')
 			.attr('title', nameCallback )
-			.style('fill', function ( d, i ) {
-				return color( i );
-			} );
+			.attr('class', 'bubble')
+			.style('fill', colorCallback );
 
-		elements.append('text')
-			.attr('class', 'data-name');
+		// Links
+		elements.append('a')
+			.append('text')
+				.attr('class', 'data-name')
 
+		// Values
 		elements.append('text')
 			.attr('class', 'data-value')
 			.attr('transform', 'translate(100, 20)');
 
-		elements.on('mouseover', function() {
-			d3.select(this).select('circle')
-				.transition().duration( NORMAL )
-					.style('opacity', 0.5)
-		} );
+		elements.on('mouseover', function () {
 
-		elements.on('mouseout', function() {
-			d3.select(this).select('circle')
-				.transition().duration( SHORT )
-					.style('opacity', 1);
-		} );
-
-		elements.on('click', function () {
 			var el = d3.select(this);
-			var data = el.data()[0];
-			var i = stats.portals.indexOf(data);
-
-			stats.portals.splice(i, 1);
-
-			var transition = el.transition().duration( NORMAL )
-				.style('opacity', 0);
-
-			transition.selectAll('circle')
-				.attr('r', 0);
-
-			transition.selectAll('text')
-				.style('font-size', '1px');
 
 			setTimeout( function () {
-				draw( { toggleOrder: false } );
-			}, NORMAL );
-		} );
+				if( ! el.filter(':hover').size() ) {
+					return; // Is no more hover
+				}
 
+				if( el.select('.bubble-action').size() ) {
+					return;
+				}
+
+				el.select('text.data-name').text('');
+
+				// Action bubbles
+				var actionBubble = el.append('circle')
+					.attr('class', 'bubble-action hide-on-mouseout')
+					.style('fill', '#e53935' )
+					.style('opacity', 0)
+					.attr('r', 0);
+
+				actionBubble.transition().duration( LONG )
+					.attr('r', el.select('circle.bubble').attr('r') * 0.8 )
+					.style('opacity', 1);
+
+				// Action labels
+				var actionText = el.append('text')
+					.attr('class', 'bubble-action-text hide-on-mouseout')
+					.style('opacity', 0)
+					.text( L10N.hide );
+
+				actionText.transition().duration( LONG )
+						.style('opacity', 1);
+
+				var actions = el.selectAll('.hide-on-mouseout');
+
+				setTimeout( function () {
+					// Is already on it?
+					if( el.filter(':hover').size() || actions.filter(':hover').size() ) {
+						var data = el.data()[0];
+
+						var i = stats.portals.indexOf(data);
+						stats.portals.splice(i, 1);
+
+						var transition = el.transition().duration( NORMAL ).style('opacity', 0);	
+						transition.selectAll('circle').attr('r', 0);
+						transition.selectAll('text').style('font-size', '1px');
+
+						setTimeout( function () {
+							draw();
+							el.remove();
+						}, NORMAL );
+					} else {
+						actions.transition().duration( SHORT ).style('opacity', 0);
+						actionText.transition().duration( SHORT ).style('font-size', '1px');
+						actionBubble.transition().duration( SHORT ).attr('r', 0);
+						el.select('text.data-name').text( nameCallback );
+
+						setTimeout( function () {
+							actions.remove();
+						}, SHORT );
+					}
+				}, TOOLONG );
+			}, TOOLONG );
+		} );
 	}
 
 	var PADDING = 200;
-	var COLS    = parseInt( width / ( realMaxSize + PADDING ) );
+	var COLS = parseInt( width / ( realMaxSize + PADDING ) );
 	if( COLS < 1 ) {
 		COLS = 1;
 	}
@@ -329,9 +373,16 @@ function draw( args ) {
 			return 'translate(' + x.toString() + ',' + y.toString() + ')';
 		} )
 
-	elements.selectAll('circle')
+	elements.selectAll('circle.bubble')
 		.transition().duration( NORMAL )
 		.attr('r', radiusCallback )
+
+	elements.selectAll('a')
+		.attr('xlink:href', function ( d ) {
+			return stats.url + 'wiki/' + encodeURIComponent( d.name.replace(' ', '_') );
+		} )
+		.attr('target', '_blank')
+		.attr('title', nameCallback );
 
 	elements.selectAll('text.data-name')
 		.text( nameCallback );

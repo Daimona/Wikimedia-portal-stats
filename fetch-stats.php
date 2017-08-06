@@ -46,7 +46,7 @@ foreach($year_month_logs as $year_month_log) {
 
 	// Skip yet calculated log
 	$all_stats_for_this_date_yet_exists = true;
-	foreach($WIKILOG_2_WIKIAPI as $wiki => $wiki_api) {
+	foreach($WIKILOG_2_WIKIAPI as $wiki => $wiki_url) {
 		if( ! file_exists( data_wiki_portal_stats_path($wiki, $year_month_log ) ) ) {
 			$all_stats_for_this_date_yet_exists = false;
 			break;
@@ -119,7 +119,7 @@ foreach($year_month_logs as $year_month_log) {
 	$portal_pages = [];
 
 	// Init counters & caches
-	foreach($WIKILOG_2_WIKIAPI as $wiki => $wiki_api) {
+	foreach($WIKILOG_2_WIKIAPI as $wiki => $wiki_url) {
 		$portal_hits_counter  [ $wiki ] = [];
 		$portal_pages_counter [ $wiki ] = [];
 		$pages_without_portals[ $wiki ] = 0;
@@ -206,7 +206,7 @@ foreach($year_month_logs as $year_month_log) {
 	unlink( $log_path_extracted );
 
 	// Output data
-	foreach( $WIKILOG_2_WIKIAPI as $wiki => $wiki_api ) {
+	foreach( $WIKILOG_2_WIKIAPI as $wiki => $wiki_url ) {
 		$data = [
 			'date'        => [
 				'y' => $year,
@@ -215,7 +215,7 @@ foreach($year_month_logs as $year_month_log) {
 				'h' => $hour
 			],
 			'wiki'        => $wiki,
-			'api'         => $wiki_api,
+			'url'         => $wiki_url,
 			'orphanPages' => $pages_without_portals[ $wiki ],
 			'portals'     => []
 		];

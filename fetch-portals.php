@@ -27,7 +27,9 @@ require 'autoload.php';
 
 $LIMIT = 500;
 
-foreach( $WIKILOG_2_WIKIAPI as $wiki => $wiki_api ) {
+foreach( $WIKILOG_2_WIKIAPI as $wiki => $wiki_url ) {
+	$wiki_api = $wiki_url . 'w/api.php';
+
 	$portals_path = data_wiki_portals_path($wiki);
 
 	if( ! file_exists( $portals_path ) ) {
